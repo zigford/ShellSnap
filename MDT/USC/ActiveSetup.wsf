@@ -1,0 +1,64 @@
+<job id="ZTIConnect"> 
+   <script language="VBScript" src="ZTIUtility.vbs"/> 
+   <script language="VBScript">
+oLogging.CreateEntry "Running ActiveSetup.wsf", LogTypeInfo
+oLogging.CreateEntry "Will enumerate all HKLM Active Setup commands and execute as local Administrator account", LogTypeInfo
+Const HKLM = &H80000002
+
+Const REG_SZ = 1 
+Const REG_EXPAND_SZ = 2 
+Const REG_BINARY = 3 
+Const REG_DWORD = 4 
+Const REG_MULTI_SZ = 7 
+  
+computer = "."
+Set shell = CreateObject("WScript.Shell") 
+set objEnv = shell.Environment("PROCESS")
+Set registry = GetObject("winmgmts:\\" & computer & "\root\default:StdRegProv") 
+
+oLogging.CreateEntry "Setting SEE_MASK_NOZONECHECKS to 1", LogTypeInfo
+objEnv("SEE_MASK_NOZONECHECKS") = 1
+
+keyPath = "SOFTWARE\Microsoft\Active Setup\Installed Components" 
+psexecCMD = "psexec.exe /i /accepteula /h /u Administrator /p Osorio "
+registry.EnumKey HKLM, keyPath, keyNames
+
+If Not IsNull(keyNames) then
+	For Each Key in KeyNames
+	NewKeyPath = keyPath & "\" & Key
+		registry.EnumValues HKLM, NewKeyPath, valueNames, valueTypes
+		If Not IsNull(valueNames) then
+			For i=0 to UBound(valueNames)
+				valueName = valueNames(i)
+				If valueName = "StubPath" then
+					registry.GetStringValue HKLM, NewKeyPath, valueName, value
+					oLogging.CreateEntry "Going to run: " & value, LogTypeInfo
+					returnCode = shell.Run(psexecCMD & value, 1, True)
+					oLogging.CreateEntry Key & " RC: " & returnCode, LogTypeInfo
+					'registry.DeleteValue HKLM, keyPath, valueName
+					'oLogging.CreateEntry value & " Success!", LogTypeInfo
+					'Now create local user component
+					registry.EnumValues HKLM, NewKeyPath, SuccessNames, SuccessTypes
+					If Not IsNull(SuccessNames) then
+						'oLogging.CreateEntry "Finding relevant values to copy", LogTypeInfo
+						For b=0 to UBound(SuccessNames)
+							SuccessName = SuccessNames(b)	
+							If ((SuccessName = "Locale") Or (SuccessName = "Version")) then
+								'oLogging.CreateEntry "relevant value found", LogTypeInfo
+								registry.GetStringValue HKLM, NewKeyPath, SuccessName, SuccessValue
+								regCMD = "reg ADD ""HKCU\" & NewKeyPath & """ /v """ & SuccessName & """ /d """ & SuccessValue & """ /f"
+								'oLogging.CreateEntry "Going to run " & regCMD, LogTypeInfo
+								returnCode = shell.Run(psexecCMD & regCMD, 1, True)
+								oLogging.CreateEntry "Active Setup population RC: " & returnCode, LogTypeInfo
+							End If
+						Next
+					End If
+				End If 
+			Next
+		End If
+	Next
+End If
+oLogging.CreateEntry "Removing SEE_MASK_NOZONECHECKS", LogTypeInfo
+objEnv.Remove("SEE_MASK_NOZONECHECKS")
+	</script> 
+</job>

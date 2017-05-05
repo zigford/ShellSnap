@@ -1,0 +1,29 @@
+<job id="ZTIConnect"> 
+   <script language="VBScript" src="ZTIUtility.vbs"/> 
+   <script language="VBScript">
+   Set env = CreateObject("Microsoft.SMS.TSEnvironment") 
+
+   SerialNumber = env("SerialNumber")
+   oLogging.CreateEntry "Jesse1 ComputerName Script", LogTypeInfo
+   oLogging.CreateEntry "SerialNumber env var:" & SerialNumber, LogTypeInfo
+   
+
+If SerialNumber = "" or Left(SerialNumber,6) = "VMware" then
+   oLogging.CreateEntry "SerialNumber empty or contained VMWare", LogTypeInfo
+   Do While NameLength = 0
+     Name = inputbox("Enter the name for the new computer (Ensure name is less than 15 characters)" ,"Prompt for Computer Name:",,400,0)
+	 If Len(Name) > 15 then
+	   wscript.echo "Name is too long"
+	   NameLength = 0
+	 Else
+	   NameLength = 1
+	 End If
+	Loop
+   env("OSDComputerName") = Name
+else
+   oLogging.CreateEntry "Auto SerialNumber Valid", LogTypeInfo
+   env("OSDComputername") = SerialNumber
+end IF
+
+   </script> 
+</job>

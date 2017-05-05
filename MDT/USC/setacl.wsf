@@ -1,0 +1,37 @@
+<job id="ZTIConnect"> 
+   <script language="VBScript" src="ZTIUtility.vbs"/> 
+   <script language="VBScript">
+   Set env = CreateObject("Microsoft.SMS.TSEnvironment") 
+   Set WshShell = CreateObject("Wscript.Shell")
+
+   ScratchDrive = env("ScratchDrive")
+   oLogging.CreateEntry "Jesse1 SetACL Script", LogTypeInfo
+   oLogging.CreateEntry "ScratchDrive env var:" & ScratchDrive, LogTypeInfo
+
+   icaclscmd = "icacls "& ScratchDrive & "\ "
+
+   Permissions = Array("/remove ""Authenticated Users""","/remove ""Users""","/grant ""Authenticated Users"":(NP)(AD,RD,RA,X,S)","/grant ""Creator Owner"":(CI)(F)","/grant ""Creator Owner"":(OI)(F)")
+   
+	For Each Perm in Permissions
+		Install(icaclscmd & Perm)
+	Next
+   
+   
+function Install(strCommand)
+  'Executes each command and redirects stderror and stdout to the logfile
+  oLogging.CreateEntry "Executing (" & strCommand & ")", LogTypeInfo
+  Set oExec = WshShell.Exec(strCommand)
+  Do While Not oExec.StdOut.AtEndOfStream
+    sLine = oExec.StdOut.ReadLine
+    oLogging.CreateEntry sLine, LogTypeInfo
+  Loop
+  Do While Not oExec.StdErr.AtEndOfStream
+    sLine = oExec.StdErr.ReadLine
+    oLogging.CreateEntry sLine, LogTypeInfo
+  Loop
+' Pause for 5 seconds to allow the installer to finish properly
+
+end function
+
+   </script> 
+</job>

@@ -1,0 +1,53 @@
+<job id="ZTIConnect"> 
+   <script language="VBScript" src="ZTIUtility.vbs"/> 
+   <script language="VBScript">
+   Set env = CreateObject("Microsoft.SMS.TSEnvironment") 
+   set FSO = CreateObject("Scripting.FileSystemObject") 
+   Set WshShell = CreateObject("Wscript.Shell")
+   
+   BootImage = env("_SMSTSBootImageID")
+   oLogging.CreateEntry "Jesse1 SetBG Script", LogTypeInfo
+   If BootImage = "USC00001" then
+     strArch = "x86"
+   ElseIf BootImage = "USC00002" then
+     strArch = "x64"
+   Else
+     strArch = "unknown"
+   End If
+   oLogging.CreateEntry "BootImage:" & BootImage & " Arch " & strArch, LogTypeInfo
+   
+   Set args = WScript.Arguments
+   BackGroundID = args.Item(0)
+   ScriptRoot = env("ScriptRoot")
+   ScriptRoot2 = FSO.GetFile(Wscript.ScriptFullName).ParentFolder
+   WallPaperEXE = ScriptRoot2 + "\" + strArch + "\wallpaper.exe"
+   BackgroundFile = ScriptRoot2 + "\backgrounds\USC-build_" +  BackGroundID + ".jpg"
+   
+   oLogging.CreateEntry "Background ID: " + BackGroundID, LogTypeInfo
+   oLogging.CreateEntry "ScriptRoot: " + ScriptRoot, LogTypeInfo
+   oLogging.CreateEntry "ScriptRoot2: " + ScriptRoot2, LogTypeInfo
+   oLogging.CreateEntry "WallPaperEXE ID: " + WallPaperEXE, LogTypeInfo
+   oLogging.CreateEntry "BackgroundFile: " + BackgroundFile, LogTypeInfo
+   
+   strCommand = WallPaperEXE + " " + BackgroundFile
+   WshShell.Run strCommand
+   oLogging.CreateEntry "Completed", LogTypeInfo
+   oLogging.CreateEntry "Run: " + strCommand, LogTypeInfo
+   REM On Error Resume Next
+   REM oLogging.CreateEntry "Executing (" & strCommand & ")", LogTypeInfo
+   REM Set oExec = WshShell.Exec(strCommand)
+   REM If Err Then
+     REM oLogging.CreateEntry "Error # " & CStr(Err.Number) & " " & Err.Description, LogTypeInfo
+	 REM oLogging.CreateEntry "Exiting with error code 1", LogTypeInfo
+	 REM wscript.quit 1
+   REM End If
+   REM Do While Not oExec.StdOut.AtEndOfStream
+     REM sLine = oExec.StdOut.ReadLine
+     REM oLogging.CreateEntry sLine, LogTypeInfo
+   REM Loop
+   REM Do While Not oExec.StdErr.AtEndOfStream
+     REM sLine = oExec.StdErr.ReadLine
+     REM oLogging.CreateEntry sLine, LogTypeInfo
+   REM Loop 
+   </script> 
+</job>

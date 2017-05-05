@@ -1,0 +1,46 @@
+<job id="ZTIConnect"> 
+   <script language="VBScript" src="ZTIUtility.vbs"/> 
+   <script language="VBScript">
+Dim oUSCCapture, oTSName, oVStart, oVStop, oVLength, oTSVersion
+Set oTSEnv = CreateObject("Microsoft.SMS.TSEnvironment")
+Set oDate = CreateObject("WbemScripting.SWbemDateTime")
+Set WshShell = WScript.CreateObject("WScript.Shell")
+ oDate.SetVarDate(Now())
+ oUSCCapture = oTSEnv("USCCapture")
+ oTSName = oTSEnv("_SMSTSPackageName")
+ oVStart = InStr(oTSName, "[")
+ oVStop = InStr(oTSName, "]")
+ oVLength = oVStop - oVStart
+ oTSVersion = Mid(oTSName, oVStart + 1, oVLength -1)
+  
+
+ oLogging.CreateEntry "JesseTat USCTatoo Script", LogTypeInfo
+ '//----------------------------------------------------------------------------
+ '//  If this is the Image Capture, then populate core image info
+ '//----------------------------------------------------------------------------
+
+ If oUSCCapture = "True" then
+    oLogging.CreateEntry "Tatooing build image", LogTypeInfo
+    WshShell.RegWrite "HKEY_LOCAL_MACHINE\Software\USC\MOETattoo\Core Image Version", oTSEnv("CoreImageVersion"), "REG_SZ"
+    WshShell.RegWrite "HKEY_LOCAL_MACHINE\Software\USC\MOETattoo\Core Image Timestamp", CStr(oDate.Value), "REG_SZ"
+    WshShell.RegWrite "HKEY_LOCAL_MACHINE\Software\USC\MOETattoo\Core Image TS Name", oTSEnv("_SMSTSPackageName"), "REG_SZ"
+	WshShell.RegWrite "HKEY_LOCAL_MACHINE\Software\USC\MOETattoo\Core Image TS Version", oTSVersion, "REG_SZ"
+    WshShell.RegWrite "HKEY_LOCAL_MACHINE\Software\USC\MOETattoo\Core Image TS ID", oTSEnv("_SMSTSPackageID"), "REG_SZ"
+
+
+ '//----------------------------------------------------------------------------
+ '//  If this is the image deployment, then populate additional info
+ '//----------------------------------------------------------------------------
+ Else
+    oLogging.CreateEntry "Tatooing deployed image", LogTypeInfo
+    WshShell.RegWrite "HKEY_LOCAL_MACHINE\Software\USC\MOETattoo\Build Timestamp", CStr(oDate.Value), "REG_SZ"
+    WshShell.RegWrite "HKEY_LOCAL_MACHINE\Software\USC\MOETattoo\Build TS Name", oTSEnv("_SMSTSPackageName"), "REG_SZ"
+	WshShell.RegWrite "HKEY_LOCAL_MACHINE\Software\USC\MOETattoo\Build TS Version", oTSVersion, "REG_SZ"
+    WshShell.RegWrite "HKEY_LOCAL_MACHINE\Software\USC\MOETattoo\Build TS ID", oTSEnv("_SMSTSPackageID"), "REG_SZ"
+    WshShell.RegWrite "HKEY_LOCAL_MACHINE\Software\USC\MOETattoo\Build Launch Mode", oTSEnv("_SMSTSLaunchMode"), "REG_SZ"
+    WshShell.RegWrite "HKEY_LOCAL_MACHINE\Software\USC\MOETattoo\Build Media Type", oTSEnv("_SMSTSMediaType"), "REG_SZ"
+    WshShell.RegWrite "HKEY_LOCAL_MACHINE\Software\USC\MOETattoo\Build Management Point", oTSEnv("_SMSTSMP"), "REG_SZ"
+ End If
+ oLogging.CreateEntry "Tatooing complete.", LogTypeInfo
+   </script> 
+</job>

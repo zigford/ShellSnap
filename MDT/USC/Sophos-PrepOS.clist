@@ -1,0 +1,13 @@
+net stop "Sophos Message Router"
+net stop "Sophos Agent"
+net stop "Sophos AutoUpdate Service"
+#1-0# reg delete "HKLM\Software\Sophos\Messaging System\Router\Private" /v pkc /f
+#1-0# reg delete "HKLM\Software\Sophos\Messaging System\Router\Private" /v pkp /f
+#1-0# reg delete "HKLM\Software\Sophos\Remote Management System\ManagementAgent\Private" /v pkc /f
+#1-0# reg delete "HKLM\Software\Sophos\Remote Management System\ManagementAgent\Private" /v pkp /f
+#1-0# reg delete "HKLM\Software\Wow6432Node\Sophos\Messaging System\Router\Private" /v pkc /f
+#1-0# reg delete "HKLM\Software\Wow6432Node\Sophos\Messaging System\Router\Private" /v pkp /f
+#1-0# reg delete "HKLM\Software\Wow6432Node\Sophos\Remote Management System\ManagementAgent\Private" /v pkc /f
+#1-0# reg delete "HKLM\Software\Wow6432Node\Sophos\Remote Management System\ManagementAgent\Private" /v pkp /f
+cmd /c del C:\ProgramData\Sophos\AutoUpdate\data\machine_ID.txt /f
+cmd /c del C:\ProgramData\Sophos\AutoUpdate\machine_ID.txt /f

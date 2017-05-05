@@ -1,0 +1,17 @@
+<job id="ZTIConnect"> 
+   <script language="VBScript" src="ZTIUtility.vbs"/> 
+   <script language="VBScript">
+		Set WshShell = WScript.CreateObject("WScript.Shell")
+		Set env = CreateObject("Microsoft.SMS.TSEnvironment") 
+		Set objWMIService = GetObject("winmgmts:")
+		Set objLogicalDisk = objWMIService.Get("Win32_LogicalDisk.DeviceID='c:'")
+		oLogging.CreateEntry "CleanUpdates.wsf: Jesse2", LogTypeInfo
+		oLogging.CreateEntry "Getting Space Used", LogTypeInfo
+		oLogging.CreateEntry "Space Free: " + objLogicalDisk.FreeSpace, LogTypeInfo
+		oLogging.CreateEntry "Preparing Registry Settings", LogTypeInfo
+		WshShell.Run "reg.exe IMPORT VolumeCaches.reg", 1, True
+		oLogging.CreateEntry "Running Cleanup command", LogTypeInfo
+		WshShell.Run "cleanmgr.exe /sagerun:11", 1, True
+		oLogging.CreateEntry "Finished Cleanup", LogTypeInfo
+   </script> 
+</job>

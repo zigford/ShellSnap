@@ -1,0 +1,69 @@
+<job id="ZTIConnect"> 
+   <script language="VBScript" src="ZTIUtility.vbs"/> 
+   <script language="VBScript">
+
+
+sProviderServer = "wsp-sccm01.usc.internal"
+sSiteCode = "USC"
+sNamespace = "root\sms\site_" & sSiteCode
+sUsername = "usc\svcSCCMBuildAccount"
+sPassword = "g5Zem9C1SdNxKEQ"
+
+set oTSEnv = CreateObject("Microsoft.SMS.TSEnvironment")
+Set objWMI = Nothing
+
+On Error Resume Next
+Set objWMI = GetObject("winmgmts:")
+On Error Goto 0
+
+oLogging.CreateEntry "zCFG-UpdateDriver: Jesse2", LogTypeInfo
+' Call the main function
+ZTIProcess
+
+Function ZTIProcess
+
+	' Connect to the SMS provider
+	Set oLocator = CreateObject("WbemScripting.SWbemLocator")
+	Set oSMS = oLocator.ConnectServer(sProviderServer, sNamespace, sUsername, sPassword)
+	Set objResults = objWMI.InstancesOf("Win32_ComputerSystem")
+	For each objInstance in objResults
+		If not IsNull(objInstance.Manufacturer) then
+			oLogging.CreateEntry "Manufacturer not emptey and equals: " & objInstance.Manufacturer, LogTypeInfo
+			If (InStr(1, objInstance.Manufacturer, "Lenovo", 1)) then
+				oLogging.CreateEntry "Lenovo detected, setting sManufacturer to 1", LogTypeInfo
+				sManufacturer = 1
+			End If
+		End If
+		If not IsNull(objInstance.Model) then
+			sModel = Trim(objInstance.Model)
+			oLogging.CreateEntry "Detected Model: " & sModel, LogTypeInfo
+		End if
+		If not IsNull(objInstance.SystemType) then
+		    If ( Instr(1, objInstance.SystemType, "X64", 1) > 0 ) then
+				Arch = "Win7x64-"
+			Else
+				Arch = "Win7x86-"
+			End If
+			oLogging.CreateEntry "Detected Arch: " & Arch, LogTypeInfo
+		End if
+	Next
+	
+	' Build the query
+	If (sManufacturer = 1) then
+		sModel = "Lenovo"
+	End If
+	
+	oLogging.CreateEntry "Not Lenovo Detected", LogTypeInfo
+	sQuery = "select CategoryInstance_UniqueID from sms_categoryinstance where LocalizedCategoryInstanceName = '" & Arch & sModel & "'"
+	
+	' Process the query
+	Set oDriverGUIDs = oSMS.ExecQuery(sQuery)
+	For each oGUID in oDriverGUIDs
+		oTSEnv("OSDAutoApplyDriverCategoryList") = oGUID.CategoryInstance_UniqueID
+		oLogging.CreateEntry "Driver Category GUID: " & oGUID.CategoryInstance_UniqueID, LogTypeInfo
+	Next
+
+End Function
+
+   </script> 
+</job>

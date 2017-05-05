@@ -1,0 +1,14 @@
+<job id="ZTIConnect"> 
+   <script language="VBScript" src="ZTIUtility.vbs"/> 
+   <script language="VBScript">
+		Set env = CreateObject("Microsoft.SMS.TSEnvironment") 
+		Schid = "{00000000-0000-0000-0000-000000000113}"
+		sMachine = "."
+		Set WMItarget = GetObject("winmgmts://" & sMachine)
+		Set WMICCM=GetObject("Winmgmts:{impersonationLevel=impersonate,authenticationLevel=pktPrivacy}!\\" & sMachine & "\root\ccm")
+		set SMSCli = WMICCM.Get("SMS_Client")
+		set oParams = SMSCli.Methods_("TriggerSchedule").inParameters.SpawnInstance_()
+		oParams.sScheduleID = Schid
+		set res = WMICCM.ExecMethod("SMS_Client", "TriggerSchedule", oParams)
+   </script> 
+</job>

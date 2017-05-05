@@ -1,0 +1,38 @@
+<job id="ZTIConnect"> 
+   <script language="VBScript" src="ZTIUtility.vbs"/> 
+   <script language="VBScript">
+   Set env = CreateObject("Microsoft.SMS.TSEnvironment") 
+
+   OSDComputerName = env("OSDComputerName")
+   oLogging.CreateEntry "Jesse2 ComputerName Comparison Script", LogTypeInfo
+   oLogging.CreateEntry "OSDComputerName env var:" & OSDComputerName, LogTypeInfo
+   Set args = WScript.Arguments
+   CheckComputerName = args.Item(0)
+   VariableSet = args.Item(1)
+   
+   If (CheckComputerName <> "") then
+     If (InStr(1, OSDComputerName, CheckComputerName, 0)) > 0 then
+      env(VariableSet) = 1
+	     oLogging.CreateEntry "Comparison is True", LogTypeInfo
+     Else
+      env(VariableSet) = 2
+	     oLogging.CreateEntry "Comparison is False", LogTypeInfo
+     End If
+   Else
+   oLogging.CreateEntry "Comparison did not take place", LogTypeInfo
+   End If
+   strDashPosition = (InStr(1, OSDComputerName, "-", 0))
+   If (strDashPosition >0) then
+     LeftCommonNameVar = (Left(OSDComputerName, strDashPosition - 1))
+	 RightCommonNameVar = (Right(OSDComputerName, (Len(OSDComputerName) - strDashPosition)))
+	 env("LeftCommonNameVar") = LeftCommonNameVar
+	 env("RightCommonNameVar") = RightCommonNameVar
+   End If
+   </script> 
+</job>
+
+
+
+
+
+
