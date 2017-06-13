@@ -15,7 +15,7 @@
 
 .LICENSEURI 
 
-.PROJECTURI 
+.PROJECTURI https://github.com/zigford/ShellSnap/tree/master/Testing 
 
 .ICONURI 
 
