@@ -1,7 +1,7 @@
 
 <#PSScriptInfo
 
-.VERSION 0.1
+.VERSION 0.2
 
 .GUID 604c8c16-4987-4de8-b860-3a2e2f3a8394
 
@@ -26,7 +26,7 @@
 .EXTERNALSCRIPTDEPENDENCIES 
 
 .RELEASENOTES
- Currently doesn't cleanup after itself and scheduled tasks must be manually deleted and AutoLogin must be manually cleared.
+ Currently AutoLogin must be manually cleared after your finished capturing traces.
 
 
 #>
@@ -48,6 +48,7 @@ function New-EventTask {
     $Service.Connect($Env:COMPUTERNAME)
     $RootFolder = $Service.GetFolder("\")
     $Def = $Service.NewTask(0)
+    $Def.Principal.Runlevel = 1
     $regInfo = $Def.RegistrationInfo
     $regInfo.Description = $TaskName
     $regInfo.Author = (whoami)
@@ -129,12 +130,29 @@ Param()
         $WPR
     }
 
+    function Get-ADKVersionURI {
+        [CmdLetBinding()]
+        Param()
+        Get-ChildItem -Path HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Where-Object {
+            (Get-ItemProperty -Path $_.PSPath -Name DisplayName -EA SilentlyContinue).DisplayName -eq 'Kits Configuration Installer'
+        } | ForEach-Object {
+            $ADKVersion = (Get-ItemProperty -Path $_.PSPath).DisplayVersion
+        }
+        Switch ($ADKVersion) {
+            '10.1.14393.0' {'https://go.microsoft.com/fwlink/p/?LinkId=526740'}
+            '10.1.15063.0' {'https://go.microsoft.com/fwlink/p/?LinkId=845542'}
+            default {'https://go.microsoft.com/fwlink/p/?LinkId=845542'}
+        }
+    }
+
     While(-Not $Tried -and (-Not (Search-WPRLocations))) {
         Write-Verbose "Unable to find WPR. Downloading"
+        #Test if a current ADK is already partially installed. If so, use that version
+
         $TempDownload = New-Item -Path $env:temp -Name (Get-Random) -ItemType Directory
         Push-Location
         Set-Location $TempDownload
-        Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/p/?LinkId=845542' -OutFile adksetup.exe
+        Invoke-WebRequest -Uri (Get-ADKVersionURI) -OutFile adksetup.exe
         Start-Process -FilePath .\adksetup.exe -ArgumentList '/quiet /features OptionId.WindowsPerformanceToolkit' -Wait
         Pop-Location
         Remove-Item $TempDownload -Recurse -Force
@@ -152,11 +170,11 @@ Param()
 
 $CancelShutdown ="
 shutdown.exe /a
-shutdown.exe /l
 schtasks /Delete /TN ""Redirect Shutdown to Logoff"" /F
+shutdown.exe /l
 del ""%~f0""
 "
-$CncelShutDownF = New-Item -Path $env:temp -Name CncelShutd.bat -ItemType File `
+$CncelShutDownF = New-Item -Path $env:SystemRoot\temp -Name CncelShutd.bat -ItemType File `
     -Value $CancelShutdown -Force
 New-EventTask -EventID 1074 -Source User32 -EventLog System -ActionPath $CncelShutDownF `
     -TaskName 'Redirect Shutdown to Logoff'
@@ -166,9 +184,9 @@ $LogOffScript ="
 #Delete Profile for user
 Get-WMIObject -Class Win32_UserProfile | 
 ? LocalPath -match ""$((Get-CurrUser).Split('\')[1])"" | %{`$_.Delete()}
-restart-computer
 schtasks /Delete /TN ""Wipe Profile and Restart"" /F
 Remove-Item -Path `$PSCommandPath
+restart-computer
 "
 
 $ClrProfileF = New-Item -Path "$env:SystemRoot\Temp" -Name ClrProfileF.ps1 `
