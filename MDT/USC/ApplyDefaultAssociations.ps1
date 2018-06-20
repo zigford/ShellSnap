@@ -1,8 +1,17 @@
 ﻿$ScriptPath = "$env:WinDir\Resources\USC\Scripts"
 $ScriptFile = "$ScriptPath\$($MyInvocation.MyCommand.Name)"
 
+<#function Get-OSBuild {
+    cmd.exe /c ver 2>$null | ?{$_ -ne ""}|%{$_.Split('.')[-1].TrimEnd(']').Trim()}
+}#>
+
 function Get-OSBuild {
-    (cmd.exe /c ver).split('.')[-1].TrimEnd(']')
+    cmd.exe /c ver 2>$null | ForEach-Object {
+        $v = ([regex]'(\d+(\d+|\.)+)+').Matches($_).Value
+        if ($v) {
+            [Version]::Parse($v).Build
+        }
+    }
 }
 
 try {

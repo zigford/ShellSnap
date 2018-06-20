@@ -12,7 +12,13 @@ Start-Transcript $logFile
 Write-Host "Logging to $logFile"
 
 # List of Applications that will be removed
-$AppsList = "Microsoft.SkypeApp","Microsoft.MicrosoftOfficeHub","Microsoft.ConnectivityStore","Microsoft.OneConnect"
+$AppsList = 
+"Microsoft.SkypeApp",
+"Microsoft.MicrosoftOfficeHub",
+"Microsoft.ConnectivityStore",
+"Microsoft.OneConnect",
+"Microsoft.MicrosoftSolitaireCollection"
+
 
 ForEach ($App in $AppsList) {
     $Packages = Get-AppxPackage | Where-Object {$_.Name -eq $App}

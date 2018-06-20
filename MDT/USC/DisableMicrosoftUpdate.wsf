@@ -1,0 +1,16 @@
+<job id="Config-EnableWindowsStoreUpdates">
+	<script language="VBScript" src="ZTIUtility.vbs"/>
+	<script language="VBScript">
+
+	oLogging.CreateEntry "Starting to unregister Microsoft Updates", LogTypeInfo
+
+    Set ServiceManager = CreateObject("Microsoft.Update.ServiceManager") 
+    ServiceManager.ClientApplicationID = "My App" 
+    
+    'remove the Microsoft Update Service by GUID 
+    ServiceManager.RemoveService("7971f918-a847-4430-9279-4a52d1efe18d")
+    
+    oLogging.CreateEntry "Completed unregistration", LogTypeInfo
+
+    </script>
+</job>

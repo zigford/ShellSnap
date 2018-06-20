@@ -1,0 +1,24 @@
+<job id="ZTIConnect"> 
+   <script language="VBScript" src="ZTIUtility.vbs"/> 
+   <script language="VBScript">
+   Set env = CreateObject("Microsoft.SMS.TSEnvironment") 
+
+   DoCapture = env("DoCapture")
+   oLogging.CreateEntry "Jesse1 SetupCapture Script", LogTypeInfo
+   oLogging.CreateEntry "DoCapture Setting:" & DoCapture, LogTypeInfo
+   
+
+If DoCapture = "YES" then
+   oLogging.CreateEntry "Capture is enabled. Let's setup the file based on properties", LogTypeInfo
+   OSVer = Split(env("IMAGEBUILD"),".")(0) & " "
+   Arch = env("IMAGEPROCESSOR") & " "
+   Release = Right(env("TaskSequenceName"),4) & " "
+   DateOfBuild = Right(Year(Date()),2) & Right(String(2,"0") & Month(Date), 2)
+   BkpName = "Microsoft Windows " & OSVer & Arch & Release & DateOfBuild & ".wim"
+   oLogging.CreateEntry "Setting name to: " & BkpName, LogTypeInfo
+   env("BackupFile") = BkpName
+else
+   oLogging.CreateEntry "Capture Disabled", LogTypeInfo
+end IF
+   </script> 
+</job>

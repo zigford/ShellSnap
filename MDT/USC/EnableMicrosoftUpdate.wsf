@@ -1,0 +1,14 @@
+<job id="Config-EnableWindowsStoreUpdates">
+	<script language="VBScript" src="ZTIUtility.vbs"/>
+	<script language="VBScript">
+
+	oLogging.CreateEntry "Starting to register with Microsoft Updates", LogTypeInfo
+    Set ServiceManager = CreateObject("Microsoft.Update.ServiceManager")
+    ServiceManager.ClientApplicationID = "My App"
+
+    ' Add the Microsoft Update Service by GUID
+    Set NewUpdateService = ServiceManager.AddService2("7971f918-a847-4430-9279-4a52d1efe18d",7,"")
+    oLogging.CreateEntry "Completed registration", LogTypeInfo
+
+    </script>
+</job>

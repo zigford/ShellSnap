@@ -1,0 +1,21 @@
+<job id="Action-ApplyNetFx35">
+	<script language="VBScript" src="ZTIUtility.vbs"/>
+	<script language="VBScript">
+
+	oLogging.CreateEntry "Getting current OS drive letter", LogTypeInfo
+	sSystemDrive = oEnvironment.Item("OSDISK") & "\"
+	oLogging.CreateEntry "OS drive letter is " & sSystemDrive, LogTypeInfo
+	oLogging.CreateEntry "About to inject roles offline", LogTypeInfo
+	sScratchDir = sSystemDrive & "Windows\temp"
+	oLogging.CreateEntry "ScratchDir is " & sScratchDir, LogTypeInfo
+	sNetFxSource = oEnvironment.Item("SourcePath") & "\sources\sxs"
+	oLogging.CreateEntry "SXS source is " & sNetFxSource, LogTypeInfo
+	sCmd = "dism.exe /Image:" & sSystemDrive & _
+	" /Enable-Feature /FeatureName:NetFx3 /All /LimitAccess /Source:""" & _
+	 sNetFxSource & """ /ScratchDir:""" & sScratchDir & """"
+	oLogging.CreateEntry "about to run: " & sCmd, LogTypeInfo
+	oShell.Run sCmd, 0, true
+	oLogging.CreateEntry "done", LogTypeInfo	
+
+	</script>
+</job>
