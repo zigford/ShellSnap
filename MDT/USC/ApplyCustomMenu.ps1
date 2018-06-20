@@ -49,6 +49,39 @@ Try {
     $OSBuild = Get-OSBuild
     $LayoutFile = "$env:WinDir\Resources\USC\Start-MenuLayouts\Layout-$OSBuild.xml"
     If (Test-Path -Path $LayoutFile) {
+#19-08-2018 Newer builds of office use different office shortcut names
+#here we will check which type the system has
+        logMsg "Testing office shortcut type"  
+        $OldIcons = $True
+        $NewIcons = $True
+        $TestList = 'Word','Outlook','Excel','PowerPoint'
+        $IconLoc  = "$env:ALLUSERSPROFILE\Microsoft\Windows\Start Menu\Programs"
+        ForEach ($Icon in $TestList) {
+            $NewPath = "$IconLoc\$Icon.lnk"
+            $OldPath = "$IconLoc\$Icon 2016.lnk"
+            If (Test-Path -Path $OldPath) {
+                $NewIcons = $False
+            } ElseIf (Test-Path $NewPath) {
+                $OldIcons = $False
+            }
+        }
+        If ($OldIcons -and ($NewIcons -eq $False)) {
+            #Nothing to do here as icons are still the old style
+            logMsg "Older 2016 icons"
+        } ElseIf ($NewIcons -and ($OldIcons -eq $False)) {
+            logMsg "New icons without 2016. Update XML on the fly"
+            Try {
+                Get-Content -Path $LayoutFile | ForEach-Object {
+                    If ($_ -match 'Programs\\(?!OneNote)(\w+\s)+2016') {
+                        $_ -replace ' 2016',''
+                    } else {
+                        $_
+                    }
+                } | Out-File $LayoutFile
+            } catch {
+                logMsg "Failed to update xml with new icon names"
+            }
+        }
         Write-Verbose "Applying start layout Layout-$OSBuild.xml to $env:SystemDrive"
         Import-StartLayout -LayoutPath $LayoutFile -MountPath $env:SystemDrive\
         #Copy-Item -Path $LayoutFile -Destination $env:SystemDrive\Users\Administrator\AppData\Local\Microsoft\Windows\Shell\LayoutModification.xml
