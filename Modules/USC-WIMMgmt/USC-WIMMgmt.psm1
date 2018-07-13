@@ -166,3 +166,26 @@ function wim{
         sl $Loc
     }
 }
+
+function Export-WimIndex {
+    Param($Release="1709",$Index,$Root='appdev',[switch]$Whatif)
+    $Build = Get-ReleaseBuild $Release
+    $Root = Switch ($Root) {
+        appdev {'\\usc.internal\dfs\appdev\SCCMPackages\OperatingSystems'}
+        cap {'\\wsp-configmgr01\DeploymentShare$\Captures'}
+    }
+    $ImageFile = "$Root\$Build"
+
+    If (-Not $Index) {
+        $Index = Get-WimIndex -Path "$ImageFile" | Select-Object -Last 1
+    }
+
+    $Image= Get-WindowsImage -ImagePath $ImageFile -Index $Index
+    $RelVer = Get-WimIndexVer -Image $Image
+    $WimName = "Microsoft Windows 10 x64 $Release $RelVer.wim"
+    if ($Whatif) {
+        echo "Exporting $Wimname from $Path at index $Index"
+    } else {
+        Dism /Export-Image /SourceImageFile:"$ImageFile" /SourceIndex:$Index /DestinationImageFile:"$Root\$WimName" /Compress:fast
+    }
+}
